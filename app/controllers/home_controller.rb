@@ -1,68 +1,21 @@
-
 class HomeController < ApplicationController
-  require 'google/api_client'
-  require 'google/api_client/client_secrets'
-  require 'google/api_client/auth/installed_app'
-  require 'google/api_client/auth/storage'
-  require 'google/api_client/auth/storages/file_store'
-
   def location
-    # Initialize the API
-    client = Google::APIClient.new(:application_name => APPLICATION_NAME)
-    client.authorization = authorize
-    calendar_api = client.discovered_api('calendar', 'v3')
-
-# Fetch the next 10 events for the user
-    results = client.execute!(
-        :api_method => calendar_api.events.list,
-        :parameters => {
-            :calendarId => 'primary',
-            :maxResults => 11,
-            :singleEvents => true,
-            :orderBy => 'startTime',
-            :timeMin => Time.now.iso8601,
-            :timeMax => Time.now.iso8601
-        })
-
-    puts "Upcoming events:"
-    puts "No upcoming events found" if results.data.items.empty?
-    @location = results.data.items.first.try(:summary) || "She's Missing!!!!"
-    # results.data.items.each do |event|
-    #   start = event.start.date || event.start.date_time
-    #   puts "- #{event.summary} (#{start})"
-    # end
-  end
-
-  APPLICATION_NAME = 'WhereIsPortia'
-  CLIENT_SECRETS_PATH = Rails.root.join('client_secret.json')
-  CREDENTIALS_PATH = Rails.root.join('.credentials', 'calendar-quickstart.json')
-  SCOPE = 'https://www.googleapis.com/auth/calendar.readonly'
-
-##
-# Ensure valid credentials, either by restoring from the saved credentials
-# files or intitiating an OAuth2 authorization request via InstalledAppFlow.
-# If authorization is required, the user's default browser will be launched
-# to approve the request.
-#
-# @return [Signet::OAuth2::Client] OAuth2 credentials
-  def authorize
-    FileUtils.mkdir_p(File.dirname(CREDENTIALS_PATH))
-
-    file_store = Google::APIClient::FileStore.new(CREDENTIALS_PATH)
-    storage = Google::APIClient::Storage.new(file_store)
-    auth = storage.authorize
-
-    if auth.nil? || (auth.expired? && auth.refresh_token.nil?)
-      app_info = Google::APIClient::ClientSecrets.load(CLIENT_SECRETS_PATH)
-      flow = Google::APIClient::InstalledAppFlow.new({
-                                                         :client_id => app_info.client_id,
-                                                         :client_secret => app_info.client_secret,
-                                                         :scope => SCOPE})
-      auth = flow.authorize(storage)
-      puts "Credentials saved to #{CREDENTIALS_PATH}" unless auth.nil?
+    now = Time.now
+    @location = "She's Missing!!"
+    if now.hour < 6 and now.hour > 5
+      @location = 'Driving'
     end
-    auth
+    if now.hour >=6 and now.hour<17
+      @location = 'Working'
+    end
+    if now.hour >=17 and now.hour < 20
+      @location = "Biking"
+    end
+    if now.hour >= 20 and now.hour < 22
+      @location = "Home"
+    end
+    if now.hour >= 22 and now.hour <5
+    @location = "Sleeping"
+    end
   end
-
-
 end
