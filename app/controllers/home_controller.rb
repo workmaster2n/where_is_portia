@@ -1,6 +1,6 @@
 class HomeController < ApplicationController
   def location
-    now = Time.now
+    now = Time.now.in_time_zone("Central Time (US & Canada)")
     @location = "She's Missing!!"
     if now.hour < 6 and now.hour > 5
       @location = 'Driving'
